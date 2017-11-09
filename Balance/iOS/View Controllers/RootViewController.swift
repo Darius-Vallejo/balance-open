@@ -42,6 +42,7 @@ internal final class RootViewController: UIViewController
         
         // Notifications
         NotificationCenter.default.addObserver(self, selector: #selector(self.accountAddedNotification(_:)), name: Notifications.AccountAdded, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(self.invalidCredentialsNotification(_:)), name: Notifications.InvalidCredentials, object: nil)
     }
 
     internal required init?(coder aDecoder: NSCoder)
@@ -117,5 +118,36 @@ internal final class RootViewController: UIViewController
     
     @objc private func accountAddedNotification(_ notification: Notification) {
         syncManager.sync()
+    }
+    
+    @objc private func invalidCredentialsNotification(_ notification: Notification) {
+        guard let institution = notification.object as? Institution else {
+            return
+        }
+        
+        let message = "We do not have the correct credentials for your account \"\(institution.displayName)\"."
+        let alertController = UIAlertController(title: "Unauthorized", message: message, preferredStyle: .alert)
+        
+        // Cancel action
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertController.addAction(cancelAction)
+        
+        // Reauth action
+        let reauthAction = UIAlertAction(title: "Update Credentials", style: .default) { (_) in
+            switch institution.source {
+            case .coinbase:
+                self.dismiss(animated: true, completion: nil)
+                CoinbaseApi.authenticate()
+            default:
+                let newCredentialBasedAccountViewController = AddCredentialBasedAccountViewController(source: institution.source)
+                let navigationController = UINavigationController(rootViewController: newCredentialBasedAccountViewController)
+                self.present(navigationController, animated: true, completion: nil)
+            }
+        }
+        
+        alertController.addAction(reauthAction)
+        
+        // Present
+        self.present(alertController, animated: true, completion: nil)
     }
 }
