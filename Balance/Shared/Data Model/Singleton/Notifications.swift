@@ -46,6 +46,7 @@ struct Notifications {
     static let RealmAuthenticated                     = Notification.Name("RealmAuthenticated")
     static let SyncError                              = Notification.Name("SyncError")
     static let MasterCurrencyChanged                  = Notification.Name("MasterCurrencyChanged")
+    static let InvalidCredentials                     = Notification.Name("InvalidCredentials")
     
     struct Keys {
         static let Institution                  = "Institution"
