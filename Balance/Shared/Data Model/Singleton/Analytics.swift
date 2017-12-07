@@ -10,26 +10,25 @@ import Foundation
 
 class Analytics {
     func setupAnalytics() {
-        #if RELEASE
-            setupCountly()
+        #if !DEBUG
+            #if os(OSX)
+                let identifier = "bca73ad39bdb4dda98870be89899e263"
+            #else
+                let identifier = "dd541e76abab4023ab1e045e21a4d60d"
+            #endif
+            
+            guard let hockeyManager = BITHockeyManager.shared() else {
+                log.error("Failed to start BITHockeyManager because it was nil")
+                return
+            }
+            hockeyManager.configure(withIdentifier: identifier)
+            hockeyManager.start()
         #endif
-    }
-    
-    func setupCountly() {
-        let config: CountlyConfig = CountlyConfig()
-        #if os(OSX)
-            config.appKey = "1081ada3bebaec706d02253579237e8c243e6b29"
-        #else
-            config.appKey = "dcf554028cf742764b85e5c0b7b2ccb6dbafa156"
-        #endif
-        config.features = ["CLYCrashReporting"]
-        config.host = "https://countly.balancemy.money"
-        Countly.sharedInstance().start(with: config)
     }
     
     func trackEvent(withName: String, info: [String:String]? = nil) {
-        #if RELEASE
-            Countly.sharedInstance().recordEvent(withName, segmentation:info)
+        #if !DEBUG
+        BITHockeyManager.shared().metricsManager.trackEvent(withName: withName, properties: info, measurements: nil)
         #endif
     }
 }

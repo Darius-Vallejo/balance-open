@@ -1,22 +1,42 @@
 {
   "iOS" : [
     {
-      "hash" : "c3a1bcdc17338420b2325984336b92b198a7f6b95de632442bc0815e29b70617",
+      "hash" : "a58e5c625f5678002ec1169c4e2bcff883e14dc00591e8302dae760ee376fc00",
       "name" : "ObjcExceptionBridging"
     },
     {
-      "hash" : "c93b7e371f6dee732b97e1f24f460f866f9c6a152fd1ff14d533b939b6913966",
+      "hash" : "a86796777448d64ff35efc8c6138139eb06221461d4431521a91c770e3ebb40c",
       "name" : "XCGLogger"
     }
   ],
-  "commitish" : "192730ffe6bb177c673ecf39750bd5c8814171d8",
-  "Mac" : [
+  "commitish" : "7e896fd3e2bcd9c89fc2845e889cd3c7937bb7d8",
+  "watchOS" : [
     {
-      "hash" : "1663bad1b5dc80a559291a1867f498a3c789acfc57e5fc42173ec9be96658ab8",
+      "hash" : "30cf0e043d60ccb0eb89d1f9e3700616a512a92f13bb3660dd8779a244876670",
       "name" : "ObjcExceptionBridging"
     },
     {
-      "hash" : "dee730517199646e4fea857476828210fd82b6487460b540f2ce60765d3c1c09",
+      "hash" : "f02b94fb626aa4870262725f0e35d7fdb3d5993b3ae082c042ca9d98c5ec2115",
+      "name" : "XCGLogger"
+    }
+  ],
+  "tvOS" : [
+    {
+      "hash" : "ceee05e5e2192ff4a57df75fa4b711631bfba273eb2b55ddad6cf46eb1a8eca5",
+      "name" : "ObjcExceptionBridging"
+    },
+    {
+      "hash" : "73ca27eb8c394d71771ce0cdba6e0c39f9499f81f2bbdf026abbd58b5ffc1b94",
+      "name" : "XCGLogger"
+    }
+  ],
+  "Mac" : [
+    {
+      "hash" : "157f20c2012565737d4436171dbcc5eb7a81208b0428d0250ea71112caf87726",
+      "name" : "ObjcExceptionBridging"
+    },
+    {
+      "hash" : "0974e9ae537d1e77ba041b8abc09b053a2ad38226d39753e4740878c4278fa98",
       "name" : "XCGLogger"
     }
   ]

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Locksmith
 
 class EthplorerApi: ExchangeApi {
     
@@ -217,22 +218,22 @@ class EthplorerApi: ExchangeApi {
         return balance
     }
     
-    var altBalance: Int? {
-        if let altRate = altRate, let altCurrency = altCurrency {
-            let altBalance = altRate * available
-            let balance = altBalance.integerValueWith(decimals: altCurrency.decimals)
-            return balance
-        }
-        return nil
+    var altBalance: Int {
+        let altBalance = altRate * available
+        let balance = altBalance.integerValueWith(decimals: altCurrency.decimals)
+        return balance
     }
     
     @discardableResult func updateLocalAccount(institution: Institution) -> Account? {
         // Calculate the integer value of the balance based on the decimals
-        if let newAccount = AccountRepository.si.account(institutionId: institution.institutionId, source: institution.source, sourceAccountId: currency.code, sourceInstitutionId: "", accountTypeId: .wallet, accountSubTypeId: nil, name: currency.name, currency: currency.code, currentBalance: balance, availableBalance: nil, number: nil, altCurrency: altCurrency?.code, altCurrentBalance: altBalance, altAvailableBalance: nil) {
+        let currentBalance = balance
+        let altCurrentBalance = altBalance
+        
+        if let newAccount = AccountRepository.si.account(institutionId: institution.institutionId, source: institution.source, sourceAccountId: currency.code, sourceInstitutionId: "", accountTypeId: .wallet, accountSubTypeId: nil, name: currency.name, currency: currency.code, currentBalance: currentBalance, availableBalance: nil, number: nil, altCurrency: altCurrency.code, altCurrentBalance: altCurrentBalance, altAvailableBalance: nil) {
             
             // Hide unpoplular currencies that have a 0 balance
             if currency != Currency.btc && currency != Currency.eth {
-                newAccount.isHidden = (balance == 0)
+                newAccount.isHidden = (currentBalance == 0)
             }
             
             return newAccount
@@ -245,11 +246,45 @@ extension Institution {
     fileprivate var addressKey: String { return "address institutionId: \(institutionId)" }
     var address: String? {
         get {
-            return keychain[addressKey, "address"]
+            var address: String? = nil
+            if let dictionary = Locksmith.loadDataForUserAccount(userAccount: addressKey) {
+                address = dictionary["address"] as? String
+            }
+            
+            log.debug("get addressKey: \(addressKey)  address: \(String(describing: address))")
+            if address == nil {
+                // We should always be getting an address becasuse we never read it until after it's been written
+                log.severe("Tried to read address for institution [\(self)] but it didn't work! We must not have keychain access")
+            }
+            
+            return address
         }
         set {
             log.debug("set addressKey: \(addressKey)  newValue: \(String(describing: newValue))")
-            keychain[addressKey, "address"] = address
+            if let address = newValue {
+                do {
+                    try Locksmith.updateData(data: ["address": address], forUserAccount: addressKey)
+                } catch {
+                    log.severe("Couldn't update address keychain data for institution [\(self)]: \(error)")
+                }
+                
+                // Double check that it saved correctly
+                if address != self.address {
+                    log.severe("Saved addressKey for institution [\(self)] but it didn't work! We must not have keychain access")
+                }
+            } else {
+                do {
+                    try Locksmith.deleteDataForUserAccount(userAccount: addressKey)
+                } catch {
+                    log.severe("Couldn't delete address keychain data for institution [\(self)]: \(error)")
+                }
+                
+                // Double check that it deleted correctly
+                let dictionary = Locksmith.loadDataForUserAccount(userAccount: addressKey)
+                if dictionary != nil {
+                    log.severe("Deleted address for institution [\(self)] but it didn't work! We must not have keychain access")
+                }
+            }
         }
     }
 }

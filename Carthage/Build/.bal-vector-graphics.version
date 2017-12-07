@@ -1,9 +1,21 @@
 {
+  "iOS" : [
+    {
+      "hash" : "8560da3a682933a9a5a7fbb4478f20b959da4f709a961fddb9642ba4be4d4be5",
+      "name" : "BalanceVectorGraphics_iOS"
+    }
+  ],
   "commitish" : "dedcd9df99fa1daf3f33963452df10f31a5d937a",
+  "watchOS" : [
+
+  ],
+  "tvOS" : [
+
+  ],
   "Mac" : [
     {
-      "name" : "BalanceVectorGraphics",
-      "hash" : "7985f552f683828a5e85da0599ce6d8fb6bb383735df6eefbd0a3c4cbd94135c"
+      "hash" : "2b897a28b0193468d488554fb2444a2b182583882aad75cd802debe909834bcd",
+      "name" : "BalanceVectorGraphics"
     }
   ]
 }

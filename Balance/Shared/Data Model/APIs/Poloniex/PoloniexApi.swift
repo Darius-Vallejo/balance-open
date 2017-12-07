@@ -8,6 +8,7 @@
 
 import Foundation
 import Security
+import Locksmith
 
 /*
  All calls to the trading API are sent via HTTP POST to https://poloniex.com/tradingApi and must contain the following headers:
@@ -78,8 +79,8 @@ class PoloniexApi: ExchangeApi {
     
     func authenticationChallenge(loginStrings: [Field], closeBlock: @escaping (Bool, Error?, Institution?) -> Void) {
         assert(loginStrings.count == 2, "number of auth fields should be 2 for Poloniex")
-        var secretField : String?
-        var keyField : String?
+        var secretField: String?
+        var keyField: String?
         for field in loginStrings {
             if field.type == "key" {
                 keyField = field.value
@@ -200,7 +201,7 @@ class PoloniexApi: ExchangeApi {
     }
     
     fileprivate func createRequestBodyandHash(params: [String: String], secret: String, key: String) -> (body: String, signedBody: String) {
-        let nonce = Int64(Date().timeIntervalSince1970 * 10000)
+        let nonce = Int(Date().timeIntervalSince1970 * 10000)
 
         var queryItems = [URLQueryItem]()
         for (key, value) in params {
@@ -303,22 +304,90 @@ extension Institution {
     fileprivate var apiKeyKey: String { return "apiKey institutionId: \(institutionId)" }
     var apiKey: String? {
         get {
-            return keychain[apiKeyKey, "apiKey"]
+            var apiKey: String? = nil
+            if let dictionary = Locksmith.loadDataForUserAccount(userAccount: apiKeyKey) {
+                apiKey = dictionary["apiKey"] as? String
+            }
+            
+            log.debug("get apiKeyKey: \(apiKeyKey)  APIKey: \(String(describing: apiKey))")
+            if apiKey == nil {
+                // We should always be getting an apiKey becasuse we never read it until after it's been written
+                log.severe("Tried to read APIkey for institution [\(self)] but it didn't work! We must not have keychain access")
+            }
+            
+            return apiKey
         }
         set {
             log.debug("set apiKeyKey: \(apiKeyKey)  newValue: \(String(describing: newValue))")
-            keychain[apiKeyKey, "apiKey"] = newValue
+            if let apiKey = newValue {
+                do {
+                    try Locksmith.updateData(data: ["apiKey": apiKey], forUserAccount: apiKeyKey)
+                } catch {
+                    log.severe("Couldn't update APIkey keychain data for institution [\(self)]: \(error)")
+                }
+                
+                // Double check that it saved correctly
+                if apiKey != self.apiKey {
+                    log.severe("Saved apiKeyKey for institution [\(self)] but it didn't work! We must not have keychain access")
+                }
+            } else {
+                do {
+                    try Locksmith.deleteDataForUserAccount(userAccount: apiKeyKey)
+                } catch {
+                    log.severe("Couldn't delete APIkey keychain data for institution [\(self)]: \(error)")
+                }
+                
+                // Double check that it deleted correctly
+                let dictionary = Locksmith.loadDataForUserAccount(userAccount: apiKeyKey)
+                if dictionary != nil {
+                    log.severe("Deleted APIkey for institution [\(self)] but it didn't work! We must not have keychain access")
+                }
+            }
         }
     }
     
     fileprivate var secretKey: String { return "secret institutionId: \(institutionId)" }
     var secret: String? {
         get {
-            return keychain[apiKeyKey, "secret"]
+            var secret: String? = nil
+            if let dictionary = Locksmith.loadDataForUserAccount(userAccount: secretKey) {
+                secret = dictionary["secret"] as? String
+            }
+            
+            log.debug("get secretKey: \(secretKey)  secret: \(String(describing: secret))")
+            if secret == nil {
+                // We should always be getting an secret becasuse we never read it until after it's been written
+                log.severe("Tried to read secretKey for institution [\(self)] but it didn't work! We must not have keychain access")
+            }
+            
+            return secret
         }
         set {
             log.debug("set secretKey: \(secretKey)  newValue: \(String(describing: newValue))")
-            keychain[apiKeyKey, "secret"] = newValue
+            if let secret = newValue {
+                do {
+                    try Locksmith.updateData(data: ["secret": secret], forUserAccount: secretKey)
+                } catch {
+                    log.severe("Couldn't update secret keychain data for institution [\(self)]: \(error)")
+                }
+                
+                // Double check that it saved correctly
+                if secret != self.secret {
+                    log.severe("Saved secretKey for institution [\(self)] but it didn't work! We must not have keychain access")
+                }
+            } else {
+                do {
+                    try Locksmith.deleteDataForUserAccount(userAccount: secretKey)
+                } catch {
+                    log.severe("Couldn't delete secret keychain data for institution [\(self)]: \(error)")
+                }
+                
+                // Double check that it deleted correctly
+                let dictionary = Locksmith.loadDataForUserAccount(userAccount: secretKey)
+                if dictionary != nil {
+                    log.severe("Deleted secret for institution [\(self)] but it didn't work! We must not have keychain access")
+                }
+            }
         }
     }
 }

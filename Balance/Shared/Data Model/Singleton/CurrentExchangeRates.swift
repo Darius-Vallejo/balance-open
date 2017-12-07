@@ -29,14 +29,14 @@ class CurrentExchangeRates {
     fileprivate let cachedRates = SimpleCache<String, Rate>()
     fileprivate let persistedFileName = "currentExchangeRates.data"
     fileprivate var persistedFileUrl: URL {
-        return appSupportPathUrl.appendingPathComponent(persistedFileName)
+        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent(persistedFileName)
     }
     
     func exchangeRates(forSource source: ExchangeRateSource) -> [ExchangeRate]? {
         return cache.get(valueForKey: source)
     }
     
-    func convertTicker(amount: Double, from: Currency, to: Currency) -> Double? {
+    func convertTicker(amount: Double, from:Currency, to: Currency) -> Double? {
         if let exchangeRate = cachedRates.get(valueForKey: "\(from.code)-\(to.code)") {
             return amount * exchangeRate.rate
         } else {
@@ -101,9 +101,7 @@ class CurrentExchangeRates {
                 }
             }
         }
-        
-        // If we fail to convert, then use the non-source-specific convertTicker function
-        return convertTicker(amount: amount, from: from, to: to)
+        return nil
     }
     
     public func directConvert(amount: Double, from: Currency, to: Currency, source: ExchangeRateSource) -> Double? {

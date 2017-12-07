@@ -1,12 +1,18 @@
 {
-  "commitish" : "881157bfd6fc80a16aeaeb873faa2c48d0503f4d",
-  "Mac" : [
-    {
-      "name" : "MASShortcut",
-      "hash" : "7b067cd4000c5b5984fce6188aba84dee39176f0f5430944907b69bde4b0e6ff"
-    }
-  ],
   "iOS" : [
 
+  ],
+  "commitish" : "881157bfd6fc80a16aeaeb873faa2c48d0503f4d",
+  "watchOS" : [
+
+  ],
+  "tvOS" : [
+
+  ],
+  "Mac" : [
+    {
+      "hash" : "88ed4ee3ef849b600f084a473bda8f6a84079a4a064a41bc06c38e00c73b2ae0",
+      "name" : "MASShortcut"
+    }
   ]
 }

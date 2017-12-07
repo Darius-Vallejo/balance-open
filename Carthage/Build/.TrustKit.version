@@ -1,15 +1,27 @@
 {
-  "commitish" : "59a64973962627026209c7167331cb5a38af2c5e",
-  "Mac" : [
-    {
-      "name" : "TrustKit",
-      "hash" : "06c5eb9610ecba53e65b89ad5ba288adcd8b9829b1989e21f8bfaae85abf0bb0"
-    }
-  ],
   "iOS" : [
     {
-      "name" : "TrustKit",
-      "hash" : "a0594fa9711e5e66973111a1bad615688e92116b5712c796ebf29fc4a060a975"
+      "hash" : "9be3cba52626f435ff72a95ba4c1d236e50aec7eb3e0a8fbf2b02499ededc018",
+      "name" : "TrustKit"
+    }
+  ],
+  "commitish" : "50d72f7fc58cbe2766342018f4023fbed6435cc1",
+  "watchOS" : [
+    {
+      "hash" : "db27efd186f4db04b565e5d53208042154388f6a649c004c8788b0d439dda7ad",
+      "name" : "TrustKit"
+    }
+  ],
+  "tvOS" : [
+    {
+      "hash" : "0607d0d5c372081e37c96773354289f368e4b9569c3fdaa7e5893cb77b940f28",
+      "name" : "TrustKit"
+    }
+  ],
+  "Mac" : [
+    {
+      "hash" : "cfb18d76bbe56f71f5d287e1edbd718eda031ea0c955be7a6e4b7a97ab8f2a3c",
+      "name" : "TrustKit"
     }
   ]
 }

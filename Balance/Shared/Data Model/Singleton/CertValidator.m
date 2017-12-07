@@ -82,13 +82,6 @@ const NSString *geoTrustGlobalCA           = @"7HIpactkIAq2Y49orFOOQKurWxmmSFZhB
                           kTSKPublicKeyHashes : @[letsEncryptAuthorityX3, dstRootCAX3],
                           kTSKReportUris : @[balanceReportUri]
                           },
-                  @"countly.balancemy.money" : @{
-                          kTSKEnforcePinning : @YES,
-                          kTSKPublicKeyAlgorithms : @[kTSKAlgorithmRsa2048],
-                          kTSKPublicKeyHashes : @[letsEncryptAuthorityX3, dstRootCAX3],
-                          kTSKReportUris : @[balanceReportUri]
-                          },
-                  
                   @"api.coinbase.com" : @{
                           kTSKEnforcePinning : @YES,
                           kTSKPublicKeyAlgorithms : @[kTSKAlgorithmRsa2048],

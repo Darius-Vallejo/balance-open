@@ -35,8 +35,13 @@ extension Double {
         return decimal
     }
     
-    func milisecondsToSeconds() -> Double {
-        return self/1000.0
+    func paddedIntegerFor(currencyCode: String) -> Int {
+        let decimals = Currency.rawValue(currencyCode).decimals
+        
+        var amountDecimal = Decimal(self)
+        amountDecimal = amountDecimal * Decimal(pow(10.0, Double(decimals)))
+        
+        return (amountDecimal as NSDecimalNumber).intValue
     }
 }
 

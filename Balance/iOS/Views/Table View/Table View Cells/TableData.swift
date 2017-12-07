@@ -10,6 +10,7 @@ import UIKit
 
 
 // MARK: TableSection
+typealias TableIndexPath = (section: TableSection, row: TableRow)
 
 internal struct TableSection
 {
@@ -17,6 +18,13 @@ internal struct TableSection
     let rows: [TableRow]
 }
 
+extension Array where Element == TableSection {
+    subscript (indexPath: IndexPath) -> TableIndexPath {
+            let section = self[indexPath.section]
+            let row = section.rows[indexPath.row]
+            return (section, row)
+    }
+}
 
 // MARK: TableRow
 

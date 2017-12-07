@@ -6,7 +6,6 @@
 //  Copyright © 2017 Balanced Software, Inc. All rights reserved.
 //
 
-import LocalAuthentication
 import UIKit
 
 
@@ -18,9 +17,7 @@ internal final class SettingsViewController: UIViewController
     // Private
     private let viewModel = AccountsTabViewModel()
     private let currencyViewModel = CurrencySelectionViewModel()
-    
     private let tableView = UITableView(frame: CGRect.zero, style: .grouped)
-    private let biometricLockEnabledSwitch = UISwitch()
     
     // MARK: Initialization
     
@@ -46,88 +43,7 @@ internal final class SettingsViewController: UIViewController
     
     // MARK: View lifecycle
     
-    override func viewDidLoad()
-    {
-        super.viewDidLoad()
-        
-        self.view.backgroundColor = UIColor.white
-        
-        // Navigation bar
-        if #available(iOS 11.0, *) {
-            self.navigationController?.navigationBar.prefersLargeTitles = true
-        }
-//        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(self.logoutButtonTapped(_:)))
-        
-        // Table view
-        self.tableView.dataSource = self
-        self.tableView.delegate = self
-        self.tableView.register(reusableCell: TableViewCell.self)
-        self.tableView.register(reusableCell: SegmentedControlTableViewCell.self)
-        self.view.addSubview(self.tableView)
-        
-        self.tableView.snp.makeConstraints { (make) in
-            make.edges.equalToSuperview()
-        }
-        
-        // Biometric lock switch
-        self.biometricLockEnabledSwitch.addTarget(self, action: #selector(self.biometricLockEnabledSwitchValueChanged(_:)), for: .valueChanged)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        self.reloadData()
-        self.tableView.reloadData()
-    }
-    
-    // MARK: Data
-    
-    private func reloadData()
-    {
-        self.viewModel.reloadData()
-        
-        // Table sections
-        var tableSections = [TableSection]()
-        
-        // Biometrics
-        let localAuthContext = LAContext()
-        var localAuthError: NSError?
-        localAuthContext.canEvaluatePolicy(LAPolicy.deviceOwnerAuthentication, error: &localAuthError)
-        
-        if localAuthError == nil {
-            self.biometricLockEnabledSwitch.setOn(appLock.lockEnabled, animated: false)
-            
-            let biometricRow = TableRow { [weak self] (tableView, indexPath) -> UITableViewCell in
-                let cell: TableViewCell = tableView.dequeueReusableCell(at: indexPath)
-                cell.textLabel?.text = "Touch/Face ID"
-                cell.accessoryView = self?.biometricLockEnabledSwitch
-                cell.selectionStyle = .none
-                
-                return cell
-            }
-            
-            let biometricSection = TableSection(title: "Security", rows: [biometricRow])
-            tableSections.append(biometricSection)
-        }
-        
-        // Main currency
-        var mainCurrencyRow = TableRow { (tableView, indexPath) -> UITableViewCell in
-            let cell: TableViewCell = tableView.dequeueReusableCell(at: indexPath)
-            cell.textLabel?.text = self.currencyViewModel.currentCurrencyDisplay
-            cell.accessoryType = .disclosureIndicator
-            
-            return cell
-        }
-        
-        mainCurrencyRow.actionHandler = { [unowned self] (indexPath) in
-            let mainCurencySelectionViewController = MainCurrencySelectionViewController()
-            self.navigationController?.pushViewController(mainCurencySelectionViewController, animated: true)
-        }
-        
-        let currencySection = TableSection(title: "Main Currency", rows: [mainCurrencyRow])
-        tableSections.append(currencySection)
-        
-        // Insitutions
+    private var institutions: [TableRow] {
         var institutionRows = [TableRow]()
         let numberOfInstitutions = self.viewModel.numberOfSections()
         for index in 0..<numberOfInstitutions
@@ -160,15 +76,82 @@ internal final class SettingsViewController: UIViewController
             
             institutionRows.append(row)
         }
-        
-        // Add account row
-        var addAccountRow = TableRow(cellPreparationHandler: { (tableView, indexPath) -> UITableViewCell in
+        return institutionRows
+    }
+    
+    private var currencyRow: TableRow {
+        return TableRow(cellPreparationHandler: { (tableView, indexPath) -> UITableViewCell in
             let cell: TableViewCell = tableView.dequeueReusableCell(at: indexPath)
             cell.textLabel?.text = "Add Account"
             cell.accessoryType = .disclosureIndicator
             
             return cell
         })
+    }
+    
+    private var addAccountRow: TableRow {
+        return TableRow(cellPreparationHandler: { (tableView, indexPath) -> UITableViewCell in
+            let cell: TableViewCell = tableView.dequeueReusableCell(at: indexPath)
+            cell.textLabel?.text = "Add Account"
+            cell.accessoryType = .disclosureIndicator
+            
+            return cell
+        })
+    }
+    
+    override func viewDidLoad()
+    {
+        super.viewDidLoad()
+        
+        self.view.backgroundColor = UIColor.white
+        
+        // Navigation bar
+        self.navigationController?.navigationBar.prefersLargeTitles = true
+        
+        // Table view
+        self.tableView.dataSource = self
+        self.tableView.delegate = self
+        self.tableView.register(reusableCell: TableViewCell.self)
+        self.tableView.register(reusableCell: SegmentedControlTableViewCell.self)
+        self.view.addSubview(self.tableView)
+        
+        self.tableView.snp.makeConstraints { (make) in
+            make.edges.equalToSuperview()
+        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        self.reloadData()
+        self.tableView.reloadData()
+    }
+    
+    // MARK: Data
+    
+    private func reloadData()
+    {
+        self.viewModel.reloadData()
+        
+        // Table sections
+        var tableSections = [TableSection]()
+        
+        // Main currency
+        var mainCurrencyRow = currencyRow
+        
+        mainCurrencyRow.actionHandler = { [unowned self] (indexPath) in
+            let mainCurencySelectionViewController = MainCurrencySelectionViewController()
+            self.navigationController?.pushViewController(mainCurencySelectionViewController, animated: true)
+        }
+        
+        let currencySection = TableSection(title: "Main Currency", rows: [mainCurrencyRow])
+        tableSections.append(currencySection)
+        
+        // Insitutions
+        var institutionRows = institutions
+        
+        // Add account row
+        var addAccountRow = self.addAccountRow
         
         addAccountRow.actionHandler = { [unowned self] (indexPath) in
             let addAccountViewController = AddAccountViewController()
@@ -190,10 +173,6 @@ internal final class SettingsViewController: UIViewController
 
     @objc private func logoutButtonTapped(_ sender: Any) {
         // TODO: Logout
-    }
-    
-    @objc private func biometricLockEnabledSwitchValueChanged(_ sender: Any) {
-        appLock.lockEnabled = self.biometricLockEnabledSwitch.isOn
     }
     
     // MARK: Notifications
@@ -226,9 +205,7 @@ extension SettingsViewController: UITableViewDataSource
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
-        let sectionData = self.tableData[indexPath.section]
-        let rowData = sectionData.rows[indexPath.row]
-        
+        let rowData = tableData[indexPath].row
         return rowData.cellPreparationHandler(tableView, indexPath)
     }
     
@@ -240,10 +217,7 @@ extension SettingsViewController: UITableViewDataSource
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        let sectionData = self.tableData[indexPath.section]
-        let rowData = sectionData.rows[indexPath.row]
-        
-        return rowData.isDeletable
+        return tableData[indexPath].row.isDeletable
     }
 }
 
@@ -259,18 +233,12 @@ extension SettingsViewController: UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
         tableView.deselectRow(at: indexPath, animated: true)
-        
-        let sectionData = self.tableData[indexPath.section]
-        let rowData = sectionData.rows[indexPath.row]
-        rowData.actionHandler?(indexPath)
+        tableData[indexPath].row.actionHandler?(indexPath)
     }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath)
     {
         guard editingStyle == .delete else { return }
-        
-        let sectionData = self.tableData[indexPath.section]
-        let rowData = sectionData.rows[indexPath.row]
-        rowData.deletionHandler?(indexPath)
+        tableData[indexPath].row.deletionHandler?(indexPath)
     }
 }

@@ -45,7 +45,13 @@ var appSupportPathUrl: URL = {
     
     let appSupportUrl = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
     let pathUrl = appSupportUrl.appendingPathComponent("Balance", isDirectory: true)
-    try? fileManager.createDirectory(at: pathUrl, withIntermediateDirectories: true, attributes: nil)
+    
+    do {
+        try fileManager.createDirectory(at: pathUrl, withIntermediateDirectories: true, attributes: nil)
+    } catch {
+        // Nothing to do here, it's not like we can log it! This should never happen.
+    }
+    
     return pathUrl
 }()
 

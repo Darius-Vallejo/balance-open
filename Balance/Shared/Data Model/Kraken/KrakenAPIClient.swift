@@ -39,7 +39,7 @@ internal extension KrakenAPIClient
         guard let unwrappedCredentials = credentials else {
             throw APICredentialsComponents.Error.noCredentials
         }
-        let nonce = String(Int64(Date().timeIntervalSinceReferenceDate.rounded() * 1000))
+        let nonce = String(Int(Date().timeIntervalSinceReferenceDate.rounded() * 1000))
         var parameters = [String:String]()
         parameters.updateValue(nonce, forKey: "nonce")
         if let params = params {
@@ -84,7 +84,8 @@ internal extension KrakenAPIClient
                 return
             }
             
-            if case 200...299 = httpResponse.statusCode {
+            switch httpResponse.statusCode {
+            case 200...299:
                 guard let responseJSON = json as? [String : Any],
                       let resultJSON = responseJSON["result"] as? [String : String] else
                 {
@@ -107,17 +108,17 @@ internal extension KrakenAPIClient
                 async {
                     completionHandler(accounts, nil)
                 }
-            } else if case 400...402 = httpResponse.statusCode {
+            case 400...402:
                 let error = APICredentialsComponents.Error.invalidSecret(message: "One or more of your credentials is invalid")
                 async {
                     completionHandler(nil, error)
                 }
-            } else if case 403...499 = httpResponse.statusCode {
+            case 403...499:
                 let error = APICredentialsComponents.Error.missingPermissions
                 async {
                     completionHandler(nil, error)
                 }
-            } else {
+            default:
                 let error = APIError.response(httpResponse: httpResponse, data: data)
                 async {
                     completionHandler(nil, error)
@@ -141,7 +142,8 @@ internal extension KrakenAPIClient
                 return
             }
             
-            if case 200...299 = httpResponse.statusCode {
+            switch httpResponse.statusCode {
+            case 200...299:
                 guard let responseJSON = json as? [String : Any] else {
                     async {
                         completionHandler(nil, APIError.invalidJSON)
@@ -173,17 +175,17 @@ internal extension KrakenAPIClient
                 async {
                     completionHandler(transactions, nil)
                 }
-            } else if case 400...402 = httpResponse.statusCode {
+            case 400...402:
                 let error = APICredentialsComponents.Error.invalidSecret(message: "One or more of your credentials is invalid")
                 async {
                     completionHandler(nil, error)
                 }
-            } else if case 403...499 = httpResponse.statusCode {
+            case 403...499:
                 let error = APICredentialsComponents.Error.missingPermissions
                 async {
                     completionHandler(nil, error)
                 }
-            } else {
+            default:
                 let error = APIError.response(httpResponse: httpResponse, data: data)
                 async {
                     completionHandler(nil, error)
@@ -286,8 +288,7 @@ extension KrakenAPIClient: ExchangeApi {
                         } catch { }
                     }
                     for account in accounts {
-                        let currency = Currency.rawValue(account.currencyCode)
-                        let currentBalance = account.balance.integerValueWith(decimals: currency.decimals)
+                        let currentBalance = account.balance.paddedIntegerFor(currencyCode: account.currencyCode)
                         let availableBalance = currentBalance
                         
                         // Initialize an Account object to insert the record

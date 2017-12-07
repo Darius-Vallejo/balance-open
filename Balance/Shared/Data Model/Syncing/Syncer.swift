@@ -78,7 +78,7 @@ class Syncer {
                         if success {
                             self.syncAccountsAndTransactions(institution: institution, remainingInstitutions: syncingInstitutions, startDate: startDate, success: success, errors: errors, pruneTransactions: pruneTransactions)
                         } else {
-                            log.error("Failed to refresh token for institution \(institution.institutionId) (\(institution.sourceInstitutionId)): \(institution.name) error: \(String(describing: error?.localizedDescription)) error code:\(String(describing: error?.code))")
+                            log.error("Failed to refresh token for institution \(institution.institutionId) (\(institution.sourceInstitutionId)): \(institution.name)")
                             NotificationCenter.postOnMainThread(name: Notifications.SyncError, object: institution,  userInfo: nil)
                             self.syncInstitutions(syncingInstitutions, startDate: startDate, success: success, errors: errors, pruneTransactions: pruneTransactions)
                         }
@@ -423,7 +423,11 @@ class Syncer {
     
     private func paddedInteger(for amount: Double, currencyCode: String) -> Int {
         let decimals = Currency.rawValue(currencyCode).decimals
-        return amount.integerValueWith(decimals: decimals)
+        
+        var amountDecimal = Decimal(amount)
+        amountDecimal = amountDecimal * Decimal(pow(10.0, Double(decimals)))
+        
+        return (amountDecimal as NSDecimalNumber).intValue
     }
 }
 

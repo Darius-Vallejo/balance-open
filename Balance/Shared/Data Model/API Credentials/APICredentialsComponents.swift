@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import Locksmith
+
 
 internal struct APICredentialsComponents
 {
@@ -40,11 +42,14 @@ internal struct APICredentialsComponents
     
     internal init(identifier: String) throws
     {
-        guard let key = keychain[identifier, "key"], let secret = keychain[identifier, "secret"] else {
+        guard let data = Locksmith.loadDataForUserAccount(userAccount: identifier),
+            let key = data["key"] as? String,
+            let secret = data["secret"] as? String else
+        {
             throw Error.dataNotFound(identifier: identifier)
         }
-
-        let passphrase = keychain[identifier, "passphrase"]
+        
+        let passphrase = data["passphrase"] as? String
         try self.init(key: key, secret: secret, passphrase: passphrase)
     }
 }

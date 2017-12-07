@@ -46,9 +46,7 @@ internal class AddCredentialBasedAccountViewController: UIViewController
         
         // Navigation bar
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(self.doneButtonTapped(_:)))
-        if #available(iOS 11.0, *) {
-            self.navigationController?.navigationBar.prefersLargeTitles = true
-        }
+        self.navigationController?.navigationBar.prefersLargeTitles = true
         
         // Table view
         self.tableView.dataSource = self
@@ -119,21 +117,15 @@ internal class AddCredentialBasedAccountViewController: UIViewController
     @objc private func doneButtonTapped(_ sender: Any)
     {
         // Validate
-        guard self.viewModel.isValid else
-        {
-            let okAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.cancel, handler: nil)
-
-            let alertController = UIAlertController(title: "Error", message: "All fields are required", preferredStyle: .alert)
-            alertController.addAction(okAction)
-            self.present(alertController, animated: true, completion: nil)
-
+        guard self.viewModel.isValid else {
+            showErrorAlert(message: "All fields are required")
             return
         }
         
         SVProgressHUD.show()
         
         // Auth
-        self.viewModel.authenticate { (success, error) in
+        viewModel.authenticate { [unowned self] (success, error) in
             async {
                 if success
                 {
@@ -143,15 +135,17 @@ internal class AddCredentialBasedAccountViewController: UIViewController
                 }
                 
                 SVProgressHUD.dismiss()
-                
-                // Show error message
-                let okAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.cancel, handler: nil)
-                
-                let alertController = UIAlertController(title: "Error", message: error?.localizedDescription, preferredStyle: .alert)
-                alertController.addAction(okAction)
-                self.present(alertController, animated: true, completion: nil)
+                self.showErrorAlert(message: error?.localizedDescription ?? "")
             }
         }
+    }
+    
+    private func showErrorAlert(message: String) {
+        let okAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.cancel, handler: nil)
+        
+        let alertController = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alertController.addAction(okAction)
+        present(alertController, animated: true, completion: nil)
     }
 }
 
@@ -172,10 +166,7 @@ extension AddCredentialBasedAccountViewController: UITableViewDataSource
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
-        let section = self.tableSections[indexPath.section]
-        let row = section.rows[indexPath.row]
-        
-        return row.cellPreparationHandler(tableView, indexPath)
+        return tableSections[indexPath].row.cellPreparationHandler(tableView, indexPath)
     }
 }
 
@@ -188,11 +179,7 @@ extension AddCredentialBasedAccountViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
-        let section = self.tableSections[indexPath.section]
-        let row = section.rows[indexPath.row]
-        
-        row.actionHandler?(indexPath)
+        tableSections[indexPath].row.actionHandler?(indexPath)
     }
 }
 

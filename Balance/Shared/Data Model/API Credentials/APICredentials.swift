@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import Locksmith
+
   
 internal protocol APICredentials
 {
@@ -32,7 +34,19 @@ internal extension APICredentials
     internal func save(identifier: String) throws
     {
         let namespacedIdentifier = self.namespacedKeychainIdentifier(identifier)
-        try KeychainWrapper.setDictionary(components.dictionary, forIdentifier: namespacedIdentifier)
+        
+        do
+        {
+            try Locksmith.saveData(data: self.components.dictionary, forUserAccount: namespacedIdentifier)
+        }
+        catch LocksmithError.duplicate
+        {
+            try Locksmith.updateData(data: self.components.dictionary, forUserAccount: namespacedIdentifier)
+        }
+        catch let error
+        {
+            throw error
+        }
     }
     
     // MARK: Signature

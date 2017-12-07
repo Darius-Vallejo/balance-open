@@ -42,9 +42,7 @@ internal final class TransactionsListViewController: UIViewController {
         super.viewDidLoad()
         
         // Navigation bar
-        if #available(iOS 11.0, *) {
-            self.navigationController?.navigationBar.prefersLargeTitles = true
-        }
+        self.navigationController?.navigationBar.prefersLargeTitles = true
         
         // Refresh control
         self.collectionView.refreshControl = self.refreshControl
@@ -94,7 +92,7 @@ extension TransactionsListViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         let header = collectionView.dequeueReusableSupplementaryView(at: indexPath, kind: kind) as TransactionsHeaderReusableView
-        header.textLabel.text = self.viewModel.title(for: indexPath.section)
+        header.textLabel.text = viewModel.title(for: indexPath.section)
         
         return header
     }

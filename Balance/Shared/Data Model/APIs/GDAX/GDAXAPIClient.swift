@@ -273,9 +273,8 @@ extension GDAXAPIClient: ExchangeApi {
                             return
                         }
                         for account in unwrappedAccounts {
-                            let currency = Currency.rawValue(account.currencyCode)
-                            let currentBalance = account.balance.integerValueWith(decimals: currency.decimals)
-                            let availableBalance = account.availableBalance.integerValueWith(decimals: currency.decimals)
+                            let currentBalance = account.balance.paddedIntegerFor(currencyCode: account.currencyCode)
+                            let availableBalance = account.availableBalance.paddedIntegerFor(currencyCode: account.currencyCode)
                             
                             // Initialize an Account object to insert the record
                             AccountRepository.si.account(institutionId: institution.institutionId, source: institution.source, sourceAccountId: account.identifier, sourceInstitutionId: "", accountTypeId: .exchange, accountSubTypeId: nil, name: account.currencyCode, currency: account.currencyCode, currentBalance: currentBalance, availableBalance: availableBalance, number: nil, altCurrency: nil, altCurrentBalance: nil, altAvailableBalance: nil)

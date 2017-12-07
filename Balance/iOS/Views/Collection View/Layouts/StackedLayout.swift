@@ -9,7 +9,7 @@
 import UIKit
 
 
-@objc protocol StackedLayoutDelegate: class {
+internal protocol StackedLayoutDelegate: class {
     func closedHeightForItem(at indexPath: IndexPath, in collectionView: UICollectionView) -> CGFloat
     func expandedHeightForItem(at indexPath: IndexPath, in collectionView: UICollectionView) -> CGFloat
 }
@@ -34,12 +34,7 @@ internal final class StackedLayout: UICollectionViewLayout {
             return CGSize.zero
         }
         
-        let minimumHeight: CGFloat
-        if #available(iOS 11.0, *) {
-            minimumHeight = unwrappedCollectionView.bounds.height - (unwrappedCollectionView.safeAreaInsets.bottom + unwrappedCollectionView.safeAreaInsets.top)
-        } else {
-            minimumHeight = unwrappedCollectionView.bounds.height
-        }
+        let minimumHeight = unwrappedCollectionView.bounds.height - (unwrappedCollectionView.safeAreaInsets.bottom + unwrappedCollectionView.safeAreaInsets.top)
         return CGSize(width: unwrappedCollectionView.bounds.width, height: max(self.contentHeight, minimumHeight))
     }
     

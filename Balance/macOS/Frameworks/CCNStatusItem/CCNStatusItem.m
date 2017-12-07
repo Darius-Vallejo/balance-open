@@ -31,7 +31,7 @@
 #import "CCNStatusItem.h"
 #import "CCNStatusItemDropView.h"
 #import "CCNStatusItemWindowController.h"
-#import "Countly.h"
+#import <HockeySDK/HockeySDK.h>
 
 static NSString *const CCNStatusItemFrameKeyPath = @"statusItem.button.window.frame";
 static NSString *const CCNStatusItemWindowConfigurationPinnedPath = @"windowConfiguration.pinned";
@@ -415,7 +415,7 @@ static NSString *const CCNStatusItemWindowConfigurationPinnedPath = @"windowConf
 #pragma mark - Handling the Status Item Window
 
 - (void)showStatusItemWindow {
-    [[Countly sharedInstance] recordEvent:@"Popover opened"];
+    [[[BITHockeyManager sharedHockeyManager] metricsManager] trackEventWithName:@"Popover opened"];
     
     [self.statusItemWindowController showStatusItemWindow];
 }

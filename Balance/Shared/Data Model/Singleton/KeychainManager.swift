@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Locksmith
 
 class KeychainManagerFactory {
     static var instances: [String: KeychainManagement] = [:]
@@ -40,12 +41,7 @@ class KeychainManager: KeychainManagement {
     let keychainName: String
     
     var empty: Bool {
-        do {
-            return try KeychainWrapper.getDictionary(forIdentifier: keychainName) == nil
-        } catch {
-            log.severe("Couldn't read from keychain: \(error)")
-        }
-        return true
+        return Locksmith.loadDataForUserAccount(userAccount: keychainName) == nil
     }
     
     required init(keychainName: String) {
@@ -54,36 +50,32 @@ class KeychainManager: KeychainManagement {
     
     subscript (key: String) -> String? {
         get {
-            do {
-                if let dict = try KeychainWrapper.getDictionary(forIdentifier: keychainName), let value = dict[key] as? String {
-                    return value
-                }
-            } catch {
-                log.severe("Couldn't read from keychain using key \(key): \(error)")
+            if let dict = Locksmith.loadDataForUserAccount(userAccount: keychainName), let value = dict[key] as? String {
+                return value
             }
             return nil
         }
         set {
             if let newValue = newValue {
                 do {
-                    if var dict = try KeychainWrapper.getDictionary(forIdentifier: keychainName) {
+                    if var dict = Locksmith.loadDataForUserAccount(userAccount: keychainName) {
                         dict[key] = newValue
-                        try KeychainWrapper.setDictionary(dict, forIdentifier: keychainName)
+                        try Locksmith.updateData(data: dict, forUserAccount: keychainName)
                     } else {
-                        try KeychainWrapper.setDictionary([key: newValue], forIdentifier: keychainName)
+                        try Locksmith.updateData(data: [key: newValue], forUserAccount: keychainName)
                     }
                 } catch {
-                    log.severe("Couldn't write to keychain using key \(key): \(error)")
+                    log.severe("Couldn't write to keychain: \(error)")
                 }
             } else {
                 // Nil value, so remove it from the dictionary
-                do {
-                    if var dict = try KeychainWrapper.getDictionary(forIdentifier: keychainName) {
-                        dict.removeValue(forKey: key)
-                        try KeychainWrapper.setDictionary(dict, forIdentifier: keychainName)
+                if var dict = Locksmith.loadDataForUserAccount(userAccount: keychainName) {
+                    dict.removeValue(forKey: key)
+                    do {
+                        try Locksmith.updateData(data: dict, forUserAccount: keychainName)
+                    } catch {
+                        log.severe("Couldn't write to keychain: \(error)")
                     }
-                } catch {
-                    log.severe("Couldn't write to keychain using key \(key): \(error)")
                 }
             }
         }
@@ -91,7 +83,7 @@ class KeychainManager: KeychainManagement {
     
     func clear() {
         do {
-            try KeychainWrapper.deleteDictionary(forIdentifier: keychainName)
+            try Locksmith.deleteDataForUserAccount(userAccount: keychainName)
         } catch {
             log.severe("Couldn't delete from keychain: \(error)")
         }

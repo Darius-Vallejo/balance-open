@@ -6,6 +6,7 @@
 //  Copyright © 2017 Balanced Software, Inc. All rights reserved.
 //
 
+import Locksmith
 #if os(OSX)
     import AppKit
 #else
@@ -75,14 +76,8 @@ struct CoinbaseApi: ExchangeApi {
         // TODO: Create enum types for each error
         let task = certValidatedSession.dataTask(with: request) { maybeData, maybeResponse, maybeError in
             do {
-                // Check for network errors
-                guard maybeError == nil else {
-                    log.error("Failed with network error: \(String(describing: maybeError))")
-                    throw BalanceError.networkError
-                }
-                
                 // Make sure there's data
-                guard let data = maybeData else {
+                guard let data = maybeData, maybeError == nil else {
                     throw BalanceError.noData
                 }
                 
@@ -142,14 +137,8 @@ struct CoinbaseApi: ExchangeApi {
         // TODO: Create enum types for each error
         let task = certValidatedSession.dataTask(with: request) { maybeData, maybeResponse, maybeError in
             do {
-                // Check for network errors
-                guard maybeError == nil else {
-                    log.error("Failed with network error: \(String(describing: maybeError))")
-                    throw BalanceError.networkError
-                }
-                
                 // Make sure there's data
-                guard let data = maybeData else {
+                guard let data = maybeData, maybeError == nil else {
                     throw BalanceError.noData
                 }
                 
@@ -167,7 +156,7 @@ struct CoinbaseApi: ExchangeApi {
                 }
             } catch {
                 async {
-                    completion(false, error)
+                    completion(false, maybeError)
                 }
             }
         }
@@ -193,14 +182,8 @@ struct CoinbaseApi: ExchangeApi {
         // TODO: Create enum types for each error
         let task = certValidatedSession.dataTask(with: request) { maybeData, maybeResponse, maybeError in
             do {
-                // Check for network errors
-                guard maybeError == nil else {
-                    log.error("Failed with network error: \(String(describing: maybeError))")
-                    throw BalanceError.networkError
-                }
-                
                 // Make sure there's data
-                guard let data = maybeData else {
+                guard let data = maybeData, maybeError == nil else {
                     throw BalanceError.noData
                 }
                 
@@ -308,11 +291,45 @@ extension Institution {
     
     var refreshToken: String? {
         get {
-            return keychain[refreshTokenKey, "refreshToken"]
+            var refreshToken: String? = nil
+            if let dictionary = Locksmith.loadDataForUserAccount(userAccount: refreshTokenKey) {
+                refreshToken = dictionary["refreshToken"] as? String
+            }
+            
+            log.debug("get refreshTokenKey: \(refreshTokenKey)  refreshToken: \(String(describing: refreshToken))")
+            if refreshToken == nil {
+                // We should always be getting an refresh token becasuse we never read it until after it's been written
+                log.severe("Tried to read refresh token for institution [\(self)] but it didn't work! We must not have keychain access")
+            }
+            
+            return refreshToken
         }
         set {
             log.debug("set refreshTokenKey: \(refreshTokenKey)  newValue: \(String(describing: newValue))")
-            keychain[refreshTokenKey, "refreshToken"] = newValue
+            if let refreshToken = newValue {
+                do {
+                    try Locksmith.updateData(data: ["refreshToken": refreshToken], forUserAccount: refreshTokenKey)
+                } catch {
+                    log.severe("Couldn't update refreshToken keychain data for institution [\(self)]: \(error)")
+                }
+                
+                // Double check that it saved correctly
+                if refreshToken != self.refreshToken {
+                    log.severe("Saved access token for institution [\(self)] but it didn't work! We must not have keychain access")
+                }
+            } else {
+                do {
+                    try Locksmith.deleteDataForUserAccount(userAccount: refreshTokenKey)
+                } catch {
+                    log.severe("Couldn't delete refreshToken keychain data for institution [\(self)]: \(error)")
+                }
+                
+                // Double check that it deleted correctly
+                let dictionary = Locksmith.loadDataForUserAccount(userAccount: refreshTokenKey)
+                if dictionary != nil {
+                    log.severe("Deleted access token for institution [\(self)] but it didn't work! We must not have keychain access")
+                }
+            }
         }
     }
     
